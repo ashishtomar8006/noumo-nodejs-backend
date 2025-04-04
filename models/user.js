@@ -6,10 +6,23 @@ const User = (sequelize, DataTypes) => {
       lastName: {
         type: DataTypes.STRING,
       },
+      surname: {
+        type: DataTypes.STRING,
+      },
       username: {
         type: DataTypes.STRING,
-        unique: true,
-        allowNull: false,
+      },
+      universityName: {
+        type: DataTypes.STRING,
+      },
+      companyName: {
+        type: DataTypes.STRING,
+      },      
+      yearOfStudy: {
+        type: DataTypes.INTEGER,
+      },
+      faculty:{
+        type:DataTypes.STRING
       },
       email: {
         type: DataTypes.STRING,
@@ -36,6 +49,9 @@ const User = (sequelize, DataTypes) => {
       experienceLevel: {
         type: DataTypes.STRING,
       },
+      eductionLevel: {
+        type: DataTypes.STRING,
+      },      
       mentoringGoals: {
         type: DataTypes.STRING,
       },

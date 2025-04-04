@@ -4,7 +4,7 @@ import db from "../models/index.js"
 
 const signup = async (req, res) => {
   try {
-    const { username, email, password, firstname, lastname, role,employer,industry } = req.body;
+    const { username, email, password, firstname, surname, role,employer,industry } = req.body;
 
     const roleData = await db.Role.findOne({ where: { name: role } })
    
@@ -15,12 +15,16 @@ const signup = async (req, res) => {
       email,
       password: bcrypt.hashSync(password, 8),
       firstName:firstname,
-      lastName:lastname,
+      surname:surname,
       roleId:roleData.id,
     };
     if(role == 'mentee'){
       userData.experienceLevel =req.body.experienceLevel;
       userData.mentoringGoals = req.body.mentoringGoals;
+      userData.eductionLevel = req.body.eductionLevel;
+    }else if(role == "university"){
+      userData.universityName =req.body.universityName;
+      userData.yearOfStudy =req.body.yearOfStudy;
     }
 
     const user = await db.User.create(userData)
