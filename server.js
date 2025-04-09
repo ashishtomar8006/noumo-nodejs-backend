@@ -33,13 +33,14 @@ import authRoutes from "./routes/auth.routes.js"
 import userRoutes from "./routes/user.routes.js"
 import courseRoutes from "./routes/course.routes.js"
 import categoryRoutes from "./routes/category.routes.js"
+import trainingPartnerRoutes from "./routes/training-partner.routes.js"
 
 // Initialize routes
 authRoutes(app)
 userRoutes(app)
 courseRoutes(app)
 categoryRoutes(app)
-
+trainingPartnerRoutes(app)
 // Root route
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the Learning Platform API" })

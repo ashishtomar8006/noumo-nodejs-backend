@@ -7,12 +7,12 @@ export const userRoutes = (app) => {
 
 
   app.get("/api/university", [verifyToken, isAdmin], getAllUniversity)
-  app.post("/api/add-university", [verifyToken, isAdmin], addUniversity)
+  app.post("/api/add-university", addUniversity)
   app.put("/api/university/:id", verifyToken, updateUniversity)
   app.delete("/api/university/:id", [verifyToken], deleteUniversity)
 
   // Get user by ID
-  app.get("/api/users/:id", verifyToken, getUserById)
+  app.get("/api/getUserById", verifyToken, getUserById)
 
   // Update user
   app.put("/api/users/:id", verifyToken, updateUser)

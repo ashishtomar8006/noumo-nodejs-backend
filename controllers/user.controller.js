@@ -82,9 +82,27 @@ const addUniversity = async (req,res)=>{
           userId: user.id,
           status:1
         })
-      } catch (err) {    
+      }catch (err) {
         console.error("Signup Error:", err);
-        res.status(500).send({ message: err.message, errors: err.errors,status:0});
+      
+        let errorMessage = "Something went wrong. Please try again.";
+      
+        if (err.name === "SequelizeValidationError" || err.name === "SequelizeUniqueConstraintError") {
+          const messages = err.errors.map((e) => {
+            if (e.path === "email" && e.validatorKey === "not_unique") {
+              return "Email is already in use.";
+            }
+            return e.message;
+          });
+      
+          errorMessage = messages.join(", ");
+        }
+      
+        res.status(500).send({
+          message: errorMessage,
+          errors: err.errors,
+          status: 0
+        });
       }
 }
 const updateUniversity = async (req, res) => {
@@ -153,19 +171,10 @@ const deleteUniversity = async (req, res) => {
   }
 }
 
-
-
 // Get user by ID
 const getUserById = async (req, res) => {
   try {
-    const user = await db.User.findByPk(req.params.id, {
-      include: [
-        {
-          model: db.Role,
-          attributes: ["id", "name"],
-          through: { attributes: [] },
-        },
-      ],
+    const user = await db.User.findByPk(req.userId, {
       attributes: { exclude: ["password"] },
     })
 
