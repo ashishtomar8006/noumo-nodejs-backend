@@ -4,22 +4,22 @@ import dotenv from "dotenv"
 // Load environment variables
 dotenv.config()
 
-// const sequelize = new Sequelize('noumo_db', "root", "", {
-//   host: "127.0.0.1",
-//   dialect: "mysql",
-//   logging:false,
-//   port: process.env.DB_PORT || 3306,
-// });
-
-const sequelize = new Sequelize("bcfhcbl92qlh0fqorpgs", "urd1j91nu1qnslnx", "smCLzUKYRWheAVmXaCMR", {
-  host: "bcfhcbl92qlh0fqorpgs-mysql.services.clever-cloud.com",
+const sequelize = new Sequelize('noumo_db', "root", "", {
+  host: "127.0.0.1",
   dialect: "mysql",
-  port: 3306,
+  logging:false,
+  port: process.env.DB_PORT || 3306,
 });
+
+// const sequelize = new Sequelize("bcfhcbl92qlh0fqorpgs", "urd1j91nu1qnslnx", "smCLzUKYRWheAVmXaCMR", {
+//   host: "bcfhcbl92qlh0fqorpgs-mysql.services.clever-cloud.com",
+//   dialect: "mysql",
+//   port: 3306,
+// });
 
 const connectDB = async () => {
   try {
-    sequelize.authenticate({ force: false }) // Change to true if you want to drop existing tables
+    sequelize.sync({ force: false }) // Change to true if you want to drop existing tables
       .then(() => {
         console.log("✅ Database synced successfully!")
       })
