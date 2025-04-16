@@ -37,7 +37,6 @@ const getUsers = async (req, res) => {
   }
 };
 
-
 const getAllUniversity = async (req,res)=>{
   try {
     // Fetch users where roleId = 3 (Universities)

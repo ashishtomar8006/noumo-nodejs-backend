@@ -80,7 +80,21 @@ const User = (sequelize, DataTypes) => {
         foreignKey: "userId",
         as: "enrolledCourses",
       })
-      UserModel.belongsTo(models.Role, { foreignKey: "roleId", as: "role" }) 
+      UserModel.belongsTo(models.Role, { foreignKey: "roleId", as: "role" }),
+      UserModel.hasOne(models.Company, {
+        foreignKey: "companyUserId",
+        as: "company",
+        onDelete: "CASCADE",
+        hooks: true,
+      }); 
+
+      UserModel.hasOne(models.CompanyRequest, {
+        foreignKey: "email",
+        sourceKey: "email",
+        as: "companyRequest",
+        onDelete: "CASCADE",
+        hooks: true,
+      });
     }
   
     return UserModel

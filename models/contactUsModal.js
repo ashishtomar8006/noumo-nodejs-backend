@@ -19,7 +19,7 @@ const ContactUs = (sequelize, DataTypes) => {
     phone: {
       type: DataTypes.STRING(20),
       allowNull: true
-    },
+    },   
     message: {
       type: DataTypes.STRING(1000), // You can adjust length as needed
       allowNull: true

@@ -52,10 +52,24 @@ const saveContactUs = async (req, res) => {
   }
 };
 
-const getContactUsListing = async (req, res) => {
-  const response = await db.CompanyRequest.findAll();
-  res.send({ message: "success", status: true, data: response });
-}
+const getCompanyListing = async (req, res) => {
+  try {
+    const response = await db.User.findAll({
+      where: { roleId: 5, isActive: true },
+      include: [
+        {
+          model: db.Company,
+          as: "company", // must match the alias used in `hasOne`
+        },
+      ],
+    });
+
+    res.send({ message: "success", status: true, data: response });
+  } catch (error) {
+    console.error("Error fetching companies:", error);
+    res.status(500).json({ message: "Internal Server Error", status: false });
+  }
+};
 
 
 
@@ -161,17 +175,24 @@ const approvedCompanyRequest = async (req, res) => {
 };
 
 
-const deleteContact = async (req, res) => {
+const deleteCompanyUser = async (req, res) => {
   try {
-    const contact = await db.CompanyRequest.findByPk(req.params.id)
-    if (!contact) {
-      return res.status(404).send({ message: "Company request not found." })
-    }
-    await contact.destroy()
-    res.status(200).send({ message: "Company request deleted successfully." })
-  } catch (err) {
-    res.status(500).send({ message: err.message })
-  }
-}
+    const { id } = req.params;
 
-export { saveContactUs, getContactUsListing, deleteContact, getCompanyRequestById, updateCompanyRequest, approvedCompanyRequest };
+    const user = await db.User.findByPk(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found", status: false });
+    }
+
+    await user.destroy(); // This will trigger cascade deletion
+
+    return res.status(200).json({ message: "User and related company data deleted", status: true });
+  } catch (error) {
+    console.error("Error deleting company user:", error);
+    return res.status(500).json({ message: "Internal Server Error", status: false });
+  }
+};
+
+
+export { saveContactUs, getCompanyListing, deleteCompanyUser, getCompanyRequestById, updateCompanyRequest, approvedCompanyRequest };

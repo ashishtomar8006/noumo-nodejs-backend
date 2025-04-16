@@ -27,6 +27,15 @@ const CompanyRequest = (sequelize, DataTypes) => {
       phone: {
         type: DataTypes.STRING(20)
       },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      status: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 0,
+      }, 
       company_name: {
         type: DataTypes.STRING(150)
       },
@@ -43,6 +52,14 @@ const CompanyRequest = (sequelize, DataTypes) => {
       tableName: "CompanyRequest"
     });
   
+    CompanyRequest.associate = (models) => {
+      CompanyRequest.belongsTo(models.User, {
+        foreignKey: "email",
+        targetKey: "email",
+        as: "user",
+      });
+    };
+    
     return CompanyRequest;
   };
 

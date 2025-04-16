@@ -9,6 +9,7 @@ import CourseCategory from "./courseCategory.js"
 import Enrollment from "./enrollment.js"
 import CompanyRequest from "./companyRequest.js"
 import ContactUs from "./contactUsModal.js"
+import Company from "./Company.js"
 
 
 // Initialize models
@@ -20,6 +21,7 @@ db.CourseCategory = CourseCategory(sequelize, DataTypes)
 db.Enrollment = Enrollment(sequelize, DataTypes)
 db.CompanyRequest = CompanyRequest(sequelize, DataTypes)
 db.ContactUs = ContactUs(sequelize, DataTypes)
+db.Company = Company(sequelize, DataTypes)
 
 // Set up associations
 Object.keys(db).forEach((modelName) => {
