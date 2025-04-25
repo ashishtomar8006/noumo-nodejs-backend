@@ -1,6 +1,7 @@
 import db from "../models/index.js"
 import bcrypt from "bcryptjs"
 import { UniqueConstraintError } from "sequelize";
+import { Op } from "sequelize";
 
 const getAllUniversity = async (req, res) => {
   try {
@@ -25,83 +26,6 @@ const getAllUniversity = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error." });
   }
 }
-
-
-// const addUniversity = async (req, res) => {
-//   try {
-//     const {
-//       universityName,
-//       email,
-//       password,
-//       confirmPassword,
-//       firstName,
-//       lastName,
-//       jobTitle,
-//       phone,
-//       universityType,
-//       industry,
-//       faculty,
-//       yearOfStudy,
-//       location
-//     } = req.body;
-
-//     // Validate passwords
-//     if (password !== confirmPassword) {
-//       return res.status(400).json({
-//         message: "Password and confirm password do not match",
-//         status: 0,
-//       });
-//     }
-
-//     // Get university role
-//     const roleData = await db.Role.findOne({ where: { name: "university" } });
-
-//     if (!roleData) {
-//       return res.status(404).json({
-//         message: "University role not found",
-//         status: 0,
-//       });
-//     }
-
-//     // Create user
-//     const user = await db.User.create({
-//       email,
-//       password: bcrypt.hashSync(password, 8),
-//       firstName,
-//       lastName,
-//       phone,
-//       roleId: 4,
-//     });
-
-//     console.log();
-
-//     // Save university details linked to user
-//     await db.University.create({
-//       universityUserId: user.id,
-//       industry,
-//       company_size,
-//       university_name: universityName,
-//       universityType,
-//       jobTitle,
-//       location,
-//       faculty,
-//       yearOfStudy,
-//     });
-
-//     res.status(201).json({
-//       message: "University registered successfully!",
-//       userId: user.id,
-//       status: 1,
-//     });
-//   } catch (err) {
-//     console.error("Signup Error:", err);
-//     res.status(500).json({
-//       message: err.message,
-//       errors: err.errors,
-//       status: 0,
-//     });
-//   }
-// };
 
 
 const addUniversity = async (req, res) => {
@@ -184,68 +108,83 @@ const addUniversity = async (req, res) => {
 
 const updateUniversity = async (req, res) => {
   try {
-    const universityId = req.params.id;
     const {
       universityName,
       email,
+      password,
+      confirmPassword,
       firstName,
       lastName,
-      phone,
       jobTitle,
-      password,
+      phone,
       universityType,
       industry,
       faculty,
       yearOfStudy,
       location,
     } = req.body;
-    console.log('universityId',universityId);
-    
-    // Check if user exists
-    const universityData = await db.University.findOne({
-      where: { universityUserId: universityId },
-      include: [{ model: db.User, as: 'user' }],
-    });
-    
 
-    if (!universityData) {
+    const { id } = req.params; // user ID
+
+    // Check password confirmation only if password is being updated
+    if (password && password !== confirmPassword) {
+      return res.status(400).json({
+        message: "Password and confirm password do not match",
+        status: 0,
+      });
+    }
+
+    // Check for duplicate email
+    const existingEmail = await db.User.findOne({
+      where: {
+        email,
+        id: { [Op.ne]: id },
+      },
+    });
+
+    if (existingEmail) {
+      return res.status(400).json({
+        message: "Email already in use",
+        status: 0,
+      });
+    }
+
+    const user = await db.User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        status: 0,
+      });
+    }
+
+    await user.update({
+      email,
+      password: password ? bcrypt.hashSync(password, 8) : user.password,
+      firstName,
+      lastName,
+      phone,
+    });
+
+    const university = await db.University.findOne({
+      where: { universityUserId: id },
+    });
+
+    if (!university) {
       return res.status(404).json({
         message: "University not found",
         status: 0,
       });
     }
 
-    const updatedData = {
-      email,
-      firstName,
-      lastName,
-      phone,
-    };
-
-    // Hash the password if it's provided
-    if (password) {
-      updatedData.password = await bcrypt.hash(password, 10);
-    }
-
-    // Then update the user
-    await db.User.update(updatedData, {
-      where: { id: universityData.universityUserId },
+    await university.update({
+      university_name: universityName,
+      industry,
+      universityType,
+      jobTitle,
+      location,
+      faculty,
+      yearOfStudy,
     });
-
-
-    // Update University details
-    await db.University.update(
-      {
-        university_name: universityName,
-        jobTitle,
-        universityType,
-        industry,
-        location,
-        faculty,
-        yearOfStudy,
-      },
-      { where: { id: universityId } }
-    );
 
     res.status(200).json({
       message: "University updated successfully!",
@@ -253,13 +192,22 @@ const updateUniversity = async (req, res) => {
     });
   } catch (err) {
     console.error("Update Error:", err);
+
+    if (err instanceof UniqueConstraintError) {
+      return res.status(400).json({
+        message: "Email is already in use",
+        status: 0,
+      });
+    }
+
     res.status(500).json({
-      message: err.message,
+      message: err.message || "Internal server error",
       errors: err.errors,
       status: 0,
     });
   }
 };
+
 
 
 // Delete user (soft delete)
