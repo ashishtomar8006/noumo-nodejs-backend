@@ -37,6 +37,7 @@ import trainingPartnerRoutes from "./routes/training-partner.routes.js"
 import contactRoutes from "./routes/contactus.routes.js";
 import companyRequest from "./routes/companyrequest.routes.js";
 import companyRoutes from "./routes/company.routes.js";
+import universityRoutes from "./routes/university.routes.js";
 
 
 
@@ -49,6 +50,9 @@ trainingPartnerRoutes(app)
 contactRoutes(app)
 companyRequest(app)
 companyRoutes(app)
+universityRoutes(app)
+
+
 
 // Root route
 app.get("/", (req, res) => {

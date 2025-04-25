@@ -17,6 +17,9 @@ const Company = (sequelize, DataTypes) => {
       location: {
         type: DataTypes.STRING,
       },
+      jobTitle: {
+        type: DataTypes.STRING,
+      },
     });
   
     Company.associate = (models) => {

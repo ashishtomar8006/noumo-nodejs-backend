@@ -1,56 +1,121 @@
 import db from "../models/index.js";
 import { validationResult } from "express-validator";
 import bcrypt from "bcryptjs"
-const saveContactUs = async (req, res) => {
-  // Handle validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ status: false, errors: errors.array() });
-  }
+import { Op } from "sequelize";
 
+const saveCompany = async (req, res) => {
   try {
     const {
       firstName,
       lastName,
-      jobTitle,
       email,
+      password,
       phone,
       companyName,
-      industry,
       companySize,
+      industry,
       location,
-      password
+      jobTitle,
     } = req.body;
 
-    const contactusdata = {
-      first_name: firstName,
-      last_name: lastName,
-      job_title: jobTitle,
-      email,
-      phone,
-      company_name: companyName,
-      industry,
-      company_size: companySize,
-      location,
-      password: password
-    };
-
-    const response = await db.CompanyRequest.create(contactusdata);
-
-    if (response) {
-      return res
-        .status(200)
-        .json({ message: "Company request added successfully.", status: true });
-    } else {
-      return res
-        .status(500)
-        .json({ message: "Failed to add Company request.", status: false });
+    // Check if user already exists
+    const existingUser = await db.User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already in use" });
     }
+
+    const newUser = await db.User.create({
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: bcrypt.hashSync(password, 8),
+      roleId: 5, 
+      phone: phone,
+    });
+
+    // Step 2: Create Company
+    const newCompany = await db.Company.create({
+      companyUserId: newUser.id,
+      company_name:companyName,
+      company_size:companySize,
+      industry,
+      location,
+      jobTitle
+    });
+
+    return res.status(201).json({
+      message: "Company added successfully",
+      status: true 
+    });
   } catch (error) {
-    console.error("Error saving Company request:", error);
-    return res.status(500).json({ message: error.message + "Server error", status: false });
+    console.error("Error saving company:", error);
+    return res.status(500).json({ message: "Internal server error" ,status: false});
   }
 };
+
+const updateCompany = async (req, res) => {
+  try {
+    const { id } = req.params; // User ID (companyUserId)
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      companyName,
+      companySize,
+      industry,
+      location,
+      jobTitle,
+    } = req.body;
+
+    // Fetch user
+    const user = await db.User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found", status: false });
+    }
+
+    // Check for duplicate email (excluding current user)
+    const existingEmail = await db.User.findOne({
+      where: {
+        email,
+        id: { [Op.ne]: id },
+      },
+    });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already in use", status: false });
+    }
+
+    // Update user
+    await user.update({
+      firstName,
+      lastName,
+      email,
+      phone,
+      ...(password && { password: bcrypt.hashSync(password, 8) }),
+    });
+
+    // Fetch and update company
+    const company = await db.Company.findOne({ where: { companyUserId: id } });
+    if (!company) {
+      return res.status(404).json({ message: "Company not found", status: false });
+    }
+
+    await company.update({
+      company_name: companyName,
+      company_size: companySize,
+      industry,
+      location,
+      jobTitle,
+    });
+
+    return res.status(200).json({ message: "Company updated successfully", status: true });
+  } catch (error) {
+    console.error("Error updating company:", error);
+    return res.status(500).json({ message: "Internal server error", status: false });
+  }
+};
+
 
 const getCompanyListing = async (req, res) => {
   try {
@@ -78,102 +143,6 @@ const getCompanyRequestById = async (req, res) => {
   res.send({ message: "success", status: true, data: response });
 }
 
-const updateCompanyRequest = async (req, res) => {
-  // Handle validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(422).json({ status: false, errors: errors.array() });
-  }
-
-  try {
-    const {
-      id, // Make sure this is passed from the frontend
-      firstName,
-      lastName,
-      jobTitle,
-      email,
-      phone,
-      companyName,
-      industry,
-      companySize,
-      location,
-    } = req.body;
-
-    const updateData = {
-      first_name: firstName,
-      last_name: lastName,
-      job_title: jobTitle,
-      email,
-      phone,
-      company_name: companyName,
-      industry,
-      company_size: companySize,
-      location,
-    };
-
-    const [updatedCount] = await db.CompanyRequest.update(updateData, {
-      where: { id }, // update based on ID
-    });
-
-    if (updatedCount > 0) {
-      return res
-        .status(200)
-        .json({ message: "Company request updated successfully.", status: true });
-    } else {
-      return res
-        .status(404)
-        .json({ message: "Company request not found or not updated.", status: false });
-    }
-  } catch (error) {
-    console.error("Error updating Company request:", error);
-    return res.status(500).json({ message: error.message + " Server error", status: false });
-  }
-};
-
-const approvedCompanyRequest = async (req, res) => {
-  try {
-    const { id, status } = req.params;
-
-    // Step 1: Fetch the company request
-    const companyRequestData = await db.CompanyRequest.findByPk(id);
-
-    if (!companyRequestData) {
-      return res.status(404).json({ message: "Company request not found" });
-    }
-
-    // Step 2: Update request status
-    await companyRequestData.update({ status });
-
-    if (status == 1) {
-      // Step 3: Create user data
-      const companyUserData = await db.User.create({
-        firstName: companyRequestData.first_name,
-        lastName: companyRequestData.last_name,
-        companyName: companyRequestData.company_name,
-        email: companyRequestData.email,
-        password: bcrypt.hashSync(companyRequestData.password, 8),
-        roleId: 5, // company role
-        industry: companyRequestData.industry,
-      });
-
-      // Step 4: Create company data
-      await db.Company.create({
-        companyUserId: companyUserData.id,
-        industry: companyRequestData.industry,
-        company_size: companyRequestData.company_size,
-        company_name: companyRequestData.company_name,
-        location: companyRequestData.location,
-      });
-      return res.status(200).json({ message: "Company approved and created successfully", status: 1 });
-    } else {
-      return res.status(200).json({ message: "Company request marked as pending ", status: 1 });
-    }
-  } catch (error) {
-    console.error("Error approving company request:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 
 const deleteCompanyUser = async (req, res) => {
   try {
@@ -195,4 +164,4 @@ const deleteCompanyUser = async (req, res) => {
 };
 
 
-export { saveContactUs, getCompanyListing, deleteCompanyUser, getCompanyRequestById, updateCompanyRequest, approvedCompanyRequest };
+export { saveCompany, getCompanyListing, deleteCompanyUser, getCompanyRequestById, updateCompany};

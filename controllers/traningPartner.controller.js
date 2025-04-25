@@ -21,52 +21,67 @@ const getAlTraningPartner = async (req,res)=>{
   }
 }
 
-const addTraningPartner = async (req,res)=>{
-     try {
-        const { email, password,firstName,lastName,industry } = req.body;
-    
-        const roleData = await db.Role.findOne({ where: { name: "partner" } })
-       
-        const userData = {
-          email,
-          password: bcrypt.hashSync(password, 8),
-          firstName:firstName,
-          lastName:lastName,
-          roleId:roleData.id,
-          industry
-        };
-        
-        const user = await db.User.create(userData)
-    
-    
-        res.status(201).send({
-          message: "User registered successfully!",
-          userId: user.id,
-          status:1
-        })
-      }catch (err) {
-        console.error("Signup Error:", err);
-      
-        let errorMessage = "Something went wrong. Please try again.";
-      
-        if (err.name === "SequelizeValidationError" || err.name === "SequelizeUniqueConstraintError") {
-          const messages = err.errors.map((e) => {
-            if (e.path === "email" && e.validatorKey === "not_unique") {
-              return "Email is already in use.";
-            }
-            return e.message;
-          });
-      
-          errorMessage = messages.join(", ");
-        }
-      
-        res.status(500).send({
-          message: errorMessage,
-          errors: err.errors,
-          status: 0
-        });
-      }
-}
+const addTraningPartner = async (req, res) => {
+  try {
+    const {
+      companyName,
+      email,
+      password,
+      confirmPassword,
+      firstName,
+      lastName,
+      jobTitle,
+      phone,
+      expertise,
+      industry, 
+      format,
+      location
+    } = req.body;
+
+    // Validate passwords
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        message: "Password and confirm password do not match",
+        status: 0,
+      });
+    }
+
+    // Create user
+    const user = await db.User.create({
+      email,
+      password: bcrypt.hashSync(password, 8),
+      firstName,
+      lastName,
+      phone,
+      roleId: 6,
+    });
+
+
+    await db.TrainingPartner.create({
+      trainingPartnerUserId: user.id,
+      industry,
+      companyName,
+      jobTitle,
+      location,
+      expertise,
+      format
+    });
+
+    res.status(201).json({
+      message: "Training Partner registered successfully!",
+      userId: user.id,
+      status: 1,
+    });
+  } catch (err) {
+    console.error("Signup Error:", err);
+    res.status(500).json({
+      message: err.message,
+      errors: err.errors,
+      status: 0,
+    });
+  }
+};
+
 
 const updateTrainingPartner = async (req, res) => {
   try {

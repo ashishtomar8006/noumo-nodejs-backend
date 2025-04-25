@@ -135,11 +135,10 @@ const approvedCompanyRequest = async (req, res) => {
       const companyUserData = await db.User.create({
         firstName: companyRequestData.first_name,
         lastName: companyRequestData.last_name,
-        companyName: companyRequestData.company_name,
         email: companyRequestData.email,
         password: bcrypt.hashSync(companyRequestData.password, 8),
         roleId: 5, // company role
-        industry: companyRequestData.industry,
+        phone: companyRequestData.phone,
       });
 
       // Step 4: Create company data

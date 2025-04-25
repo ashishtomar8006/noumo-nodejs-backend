@@ -15,6 +15,9 @@ const User = (sequelize, DataTypes) => {
       universityName: {
         type: DataTypes.STRING,
       },
+      phone:{
+        type:DataTypes.STRING,
+      },
       companyName: {
         type: DataTypes.STRING,
       },      
@@ -84,6 +87,12 @@ const User = (sequelize, DataTypes) => {
       UserModel.hasOne(models.Company, {
         foreignKey: "companyUserId",
         as: "company",
+        onDelete: "CASCADE",
+        hooks: true,
+      }); 
+      UserModel.hasOne(models.University, {
+        foreignKey: "universityUserId",
+        as: "University",
         onDelete: "CASCADE",
         hooks: true,
       }); 

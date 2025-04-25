@@ -57,7 +57,7 @@ const CompanyRequest = (sequelize, DataTypes) => {
         foreignKey: "email",
         targetKey: "email",
         as: "user",
-        onDelete: "CASCADE",  // <-- this is the key line
+        onDelete: "CASCADE",  
       });
     };
     
