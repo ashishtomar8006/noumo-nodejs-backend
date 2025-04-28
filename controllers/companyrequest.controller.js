@@ -52,17 +52,6 @@ const saveContactUs = async (req, res) => {
   }
 };
 
-const getContactUsListing = async (req, res) => {
-  const response = await db.CompanyRequest.findAll();
-  res.send({ message: "success", status: true, data: response });
-}
-
-
-
-const getCompanyRequestById = async (req, res) => {
-  const response = await db.CompanyRequest.findByPk(req.params.id);
-  res.send({ message: "success", status: true, data: response });
-}
 
 const updateCompanyRequest = async (req, res) => {
   // Handle validation errors
@@ -83,6 +72,7 @@ const updateCompanyRequest = async (req, res) => {
       industry,
       companySize,
       location,
+      password,
     } = req.body;
 
     const updateData = {
@@ -96,6 +86,10 @@ const updateCompanyRequest = async (req, res) => {
       company_size: companySize,
       location,
     };
+
+    if(password){
+      updateData.password = password;
+    }
 
     const [updatedCount] = await db.CompanyRequest.update(updateData, {
       where: { id }, // update based on ID
@@ -115,6 +109,17 @@ const updateCompanyRequest = async (req, res) => {
     return res.status(500).json({ message: error.message + " Server error", status: false });
   }
 };
+
+
+const getContactUsListing = async (req, res) => {
+  const response = await db.CompanyRequest.findAll();
+  res.send({ message: "success", status: true, data: response });
+}
+
+const getCompanyRequestById = async (req, res) => {
+  const response = await db.CompanyRequest.findByPk(req.params.id);
+  res.send({ message: "success", status: true, data: response });
+}
 
 const approvedCompanyRequest = async (req, res) => {
   try {

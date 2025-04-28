@@ -97,6 +97,14 @@ const User = (sequelize, DataTypes) => {
         hooks: true,
       }); 
 
+      UserModel.hasOne(models.TrainingPartner, {
+        foreignKey: "trainingPartnerUserId",
+        as: "trainingpartner",
+        onDelete: "CASCADE",
+        hooks: true,
+      });
+      
+
       UserModel.hasOne(models.CompanyRequest, {
         foreignKey: "email",
         sourceKey: "email",

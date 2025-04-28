@@ -4,6 +4,11 @@ const TrainingPartner = (sequelize, DataTypes) => {
       trainingPartnerUserId: {
         type: DataTypes.INTEGER,
         allowNull: false,
+        references: {
+          model: 'Users', // Make sure this matches your Users table name exactly
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
       },
       companyName: {
         type: DataTypes.STRING,
@@ -29,6 +34,7 @@ const TrainingPartner = (sequelize, DataTypes) => {
       TrainingPartner.belongsTo(models.User, {
         foreignKey: "trainingPartnerUserId",
         as: "user",
+        onDelete: "CASCADE",
       });
     };
   
